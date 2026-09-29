@@ -24,6 +24,12 @@ export type CancelBillRequest = components['schemas']['CancelBillRequest']
 export type UpdateBillDetailsRequest = components['schemas']['UpdateBillDetailsRequest']
 export type BillStatusType = components['schemas']['BillStatus']
 
+export type OrderResponse = components['schemas']['OrderResponse']
+export type OrderItemResponse = components['schemas']['OrderItemResponse']
+export type CreateOrderRequest = components['schemas']['CreateOrderRequest']
+export type CreateOrderItemRequest = components['schemas']['CreateOrderItemRequest']
+export type OrderStatusType = components['schemas']['OrderStatus']
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5105'
 
 export interface ApiError {
@@ -191,6 +197,23 @@ export const api = {
     }),
   cancelBill: (id: string, data: CancelBillRequest) =>
     request<BillResponse>(`/api/v1/Bills/${id}/cancel`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  // Orders
+  getOrders: (params?: { billId?: string; status?: OrderStatusType; includeInactive?: boolean }) => {
+    const searchParams = new URLSearchParams()
+    if (params?.billId) searchParams.append('billId', params.billId)
+    if (params?.status !== undefined) searchParams.append('status', params.status.toString())
+    if (params?.includeInactive !== undefined) searchParams.append('includeInactive', params.includeInactive.toString())
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : ''
+    return request<OrderResponse[]>(`/api/v1/Orders${query}`)
+  },
+  getOrderById: (id: string) => request<OrderResponse>(`/api/v1/Orders/${id}`),
+  getOrdersByBillId: (billId: string) => request<OrderResponse[]>(`/api/v1/Orders/bill/${billId}`),
+  createOrder: (data: CreateOrderRequest) =>
+    request<OrderResponse>('/api/v1/Orders', {
       method: 'POST',
       body: JSON.stringify(data),
     }),

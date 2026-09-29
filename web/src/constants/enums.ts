@@ -37,3 +37,21 @@ export const TableTypeLabels: Record<components['schemas']['TableType'], string>
   [TableType.DiningTable]: 'Mesa',
   [TableType.Counter]: 'Balcão',
 }
+
+export const OrderStatus = {
+  Pending: 1,
+  InPreparation: 2,
+  Ready: 3,
+  OutForDelivery: 4,
+  Delivered: 5,
+  Cancelled: 6,
+} as const satisfies Record<string, components['schemas']['OrderStatus']>
+
+export const OrderStatusLabels: Record<components['schemas']['OrderStatus'], string> = {
+  [OrderStatus.Pending]: 'Pendente',
+  [OrderStatus.InPreparation]: 'Em Preparo',
+  [OrderStatus.Ready]: 'Pronto',
+  [OrderStatus.OutForDelivery]: 'Em Entrega',
+  [OrderStatus.Delivered]: 'Entregue',
+  [OrderStatus.Cancelled]: 'Cancelado',
+}
