@@ -9,6 +9,8 @@ namespace Komari.Domain.Entities;
 /// </summary>
 public class Bill : BaseEntity
 {
+    private readonly List<Order> _orders = new();
+
     public int Number { get; private set; }
     public Guid? TableId { get; private set; }
     public Table? Table { get; private set; }
@@ -18,6 +20,15 @@ public class Bill : BaseEntity
     public string? Notes { get; private set; }
     public DateTime OpenedAt { get; private set; } = DateTime.UtcNow;
     public DateTime? ClosedAt { get; private set; }
+
+    public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
+
+    /// <summary>
+    /// Calcula o valor total consumido na comanda em tempo real, somando os pedidos não cancelados.
+    /// </summary>
+    public decimal TotalAmount => _orders
+        .Where(o => o.IsActive && o.Status != OrderStatus.Cancelled)
+        .Sum(o => o.Total);
 
     // Construtor protegido exigido pelo EF Core
     protected Bill() { }
@@ -60,11 +71,19 @@ public class Bill : BaseEntity
         TouchUpdated();
     }
 
+    public bool HasPendingOrInPreparationOrders() =>
+        _orders.Any(o => o.IsActive && (o.Status == OrderStatus.Pending || o.Status == OrderStatus.InPreparation));
+
     public void Close(string? notes = null)
     {
         if (Status != BillStatus.Open && Status != BillStatus.Closing)
         {
             throw new InvalidOperationException($"Não é possível encerrar uma comanda que está com o status '{Status}'.");
+        }
+
+        if (HasPendingOrInPreparationOrders())
+        {
+            throw new InvalidOperationException("Não é possível encerrar uma comanda com pedidos pendentes ou em preparação na cozinha.");
         }
 
         Status = BillStatus.Closed;

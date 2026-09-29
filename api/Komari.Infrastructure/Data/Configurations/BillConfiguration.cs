@@ -49,6 +49,11 @@ public class BillConfiguration : IEntityTypeConfiguration<Bill>
             .HasForeignKey(b => b.TableId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasMany(b => b.Orders)
+            .WithOne(o => o.Bill)
+            .HasForeignKey(o => o.BillId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(b => b.Status);
         builder.HasIndex(b => b.TableId);
         builder.HasIndex(b => new { b.Number, b.Status });

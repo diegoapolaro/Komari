@@ -237,3 +237,79 @@ Content-Type: application/json
 {
   "reason": "Cliente desistiu do atendimento antes de realizar qualquer pedido"
 }
+
+### 34. Criar Pedido de Consumo na Comanda (com 1 Pizza e 2 Bebidas)
+# @name createOrder
+POST {{Komari.Api_HostAddress}}/api/v1/orders
+Content-Type: application/json
+
+{
+  "billId": "{{openBillTable.response.body.id}}",
+  "notes": "Mesa com crianças, servir bebidas imediatamente",
+  "items": [
+    {
+      "productId": "{{createProduct.response.body.id}}",
+      "quantity": 1,
+      "notes": "Massa fina bem assada, sem cebola",
+      "size": "Grande"
+    }
+  ]
+}
+
+### 35. Consultar Pedido por ID (com Itens e Snapshot de Preço)
+GET {{Komari.Api_HostAddress}}/api/v1/orders/{{createOrder.response.body.id}}
+Accept: application/json
+
+### 36. Listar Todos os Pedidos da Comanda
+GET {{Komari.Api_HostAddress}}/api/v1/orders/bill/{{openBillTable.response.body.id}}
+Accept: application/json
+
+### 37. Adicionar Mais Itens ao Pedido Pendente
+POST {{Komari.Api_HostAddress}}/api/v1/orders/{{createOrder.response.body.id}}/items
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "productId": "{{createProduct.response.body.id}}",
+      "quantity": 2,
+      "notes": "Com bastante gelo e limão"
+    }
+  ]
+}
+
+### 38. Verificar Total Consumido na Comanda em Tempo Real
+GET {{Komari.Api_HostAddress}}/api/v1/bills/{{openBillTable.response.body.id}}
+Accept: application/json
+
+### 39. Avançar Status do Pedido para Em Preparação (KDS)
+PATCH {{Komari.Api_HostAddress}}/api/v1/orders/{{createOrder.response.body.id}}/status
+Content-Type: application/json
+
+{
+  "status": 2
+}
+
+### 40. Avançar Status do Pedido para Pronto
+PATCH {{Komari.Api_HostAddress}}/api/v1/orders/{{createOrder.response.body.id}}/status
+Content-Type: application/json
+
+{
+  "status": 3
+}
+
+### 41. Concluir Entrega do Pedido na Mesa (Delivered = 5)
+PATCH {{Komari.Api_HostAddress}}/api/v1/orders/{{createOrder.response.body.id}}/status
+Content-Type: application/json
+
+{
+  "status": 5
+}
+
+### 42. Teste de Regra: Tentar cancelar pedido já entregue (Deve falhar)
+POST {{Komari.Api_HostAddress}}/api/v1/orders/{{createOrder.response.body.id}}/cancel
+Content-Type: application/json
+
+{
+  "reason": "Tentativa indevida de cancelamento pós-entrega"
+}

@@ -19,6 +19,7 @@ public class BillRepository : IBillRepository
     {
         return await _context.Bills
             .Include(b => b.Table)
+            .Include(b => b.Orders.Where(o => o.IsActive))
             .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
     }
 
@@ -26,6 +27,7 @@ public class BillRepository : IBillRepository
     {
         return await _context.Bills
             .Include(b => b.Table)
+            .Include(b => b.Orders.Where(o => o.IsActive))
             .FirstOrDefaultAsync(b => b.Number == number && b.Status == BillStatus.Open && b.IsActive, cancellationToken);
     }
 
@@ -37,6 +39,7 @@ public class BillRepository : IBillRepository
     {
         IQueryable<Bill> query = _context.Bills
             .Include(b => b.Table)
+            .Include(b => b.Orders.Where(o => o.IsActive))
             .AsNoTracking();
 
         if (!includeInactive)

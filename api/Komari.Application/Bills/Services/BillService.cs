@@ -226,6 +226,8 @@ public class BillService : IBillService
             bill.Status,
             bill.CustomerName,
             bill.Notes,
+            bill.TotalAmount,
+            bill.Orders.Count(o => o.IsActive),
             bill.OpenedAt,
             bill.ClosedAt,
             bill.IsActive,

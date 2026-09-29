@@ -13,6 +13,8 @@ public class KomariDbContext : DbContext
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Table> Tables => Set<Table>();
     public DbSet<Bill> Bills => Set<Bill>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

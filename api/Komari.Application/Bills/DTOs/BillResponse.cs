@@ -14,6 +14,8 @@ public record BillResponse(
     BillStatus Status,
     string? CustomerName,
     string? Notes,
+    decimal TotalAmount,
+    int OrdersCount,
     DateTime OpenedAt,
     DateTime? ClosedAt,
     bool IsActive,

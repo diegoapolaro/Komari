@@ -3,6 +3,8 @@ using Komari.Application.Bills.Interfaces;
 using Komari.Application.Bills.Services;
 using Komari.Application.Categories.Interfaces;
 using Komari.Application.Categories.Services;
+using Komari.Application.Orders.Interfaces;
+using Komari.Application.Orders.Services;
 using Komari.Application.Products.Interfaces;
 using Komari.Application.Products.Services;
 using Komari.Application.Tables.Interfaces;
@@ -21,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<ITableService, TableService>();
         services.AddScoped<IBillService, BillService>();
+        services.AddScoped<IOrderService, OrderService>();
 
         return services;
     }
