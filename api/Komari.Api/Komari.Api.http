@@ -313,3 +313,62 @@ Content-Type: application/json
 {
   "reason": "Tentativa indevida de cancelamento pós-entrega"
 }
+
+
+### 43. Cadastrar Novo Cliente
+# @name createCustomer
+POST {{Komari.Api_HostAddress}}/api/v1/customers
+Content-Type: application/json
+
+{
+  "name": "João da Silva",
+  "phone": "11987654321",
+  "email": "joao.silva@email.com",
+  "document": "12345678909",
+  "notes": "Cliente prefere massa fina e bem assada"
+}
+
+### 44. Teste de Validação: Cadastrar Cliente sem Nome (Deve retornar 400 Bad Request)
+POST {{Komari.Api_HostAddress}}/api/v1/customers
+Content-Type: application/json
+
+{
+  "name": "",
+  "phone": "11999998888"
+}
+
+### 45. Teste de Conflito: Cadastrar Cliente com Telefone Duplicado (Deve retornar 409 Conflict)
+POST {{Komari.Api_HostAddress}}/api/v1/customers
+Content-Type: application/json
+
+{
+  "name": "Outro João",
+  "phone": "11987654321"
+}
+
+### 46. Listar Todos os Clientes (com filtro opcional de busca)
+GET {{Komari.Api_HostAddress}}/api/v1/customers?searchTerm=João
+Accept: application/json
+
+### 47. Obter Cliente por ID
+GET {{Komari.Api_HostAddress}}/api/v1/customers/{{createCustomer.response.body.id}}
+Accept: application/json
+
+### 48. Localizar Cliente pelo Telefone
+GET {{Komari.Api_HostAddress}}/api/v1/customers/by-phone/11987654321
+Accept: application/json
+
+### 49. Atualizar Dados do Cliente
+PUT {{Komari.Api_HostAddress}}/api/v1/customers/{{createCustomer.response.body.id}}
+Content-Type: application/json
+
+{
+  "name": "João da Silva Sauro",
+  "phone": "11987654321",
+  "email": "joao.sauro@email.com",
+  "document": "12345678909",
+  "notes": "Cliente vip - prefere borda recheada"
+}
+
+### 50. Desativar Cliente (Soft Delete)
+DELETE {{Komari.Api_HostAddress}}/api/v1/customers/{{createCustomer.response.body.id}}

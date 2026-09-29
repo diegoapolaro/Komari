@@ -11,6 +11,8 @@ using Komari.Application.Tables.Interfaces;
 using Komari.Application.Tables.Services;
 using Komari.Application.CashSessions.Interfaces;
 using Komari.Application.CashSessions.Services;
+using Komari.Application.Customers.Interfaces;
+using Komari.Application.Customers.Services;
 using Komari.Application.Payments.Interfaces;
 using Komari.Application.Payments.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ICashSessionService, CashSessionService>();
         services.AddScoped<IPaymentService, PaymentService>();
+        services.AddScoped<ICustomerService, CustomerService>();
 
         return services;
     }
