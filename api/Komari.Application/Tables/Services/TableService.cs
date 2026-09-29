@@ -98,6 +98,35 @@ public class TableService : ITableService
         await _tableRepository.UpdateAsync(table, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<TableResponse>> InitializeTablesAsync(InitializeTablesRequest request, CancellationToken cancellationToken = default)
+    {
+        if (request.TotalTables <= 0 || request.TotalTables > 200)
+        {
+            throw new ValidationException("A quantidade de mesas deve ser entre 1 e 200.");
+        }
+
+        var capacity = request.DefaultCapacity > 0 ? request.DefaultCapacity : 4;
+        var existingNumbers = await _tableRepository.GetExistingNumbersAsync(TableType.DiningTable, cancellationToken);
+        var existingSet = new HashSet<int>(existingNumbers);
+
+        var newTables = new List<Table>();
+        for (int i = 1; i <= request.TotalTables; i++)
+        {
+            if (!existingSet.Contains(i))
+            {
+                newTables.Add(new Table(i, capacity, TableType.DiningTable, $"Mesa {i}"));
+            }
+        }
+
+        if (newTables.Count > 0)
+        {
+            await _tableRepository.AddRangeAsync(newTables, cancellationToken);
+        }
+
+        var allTables = await _tableRepository.GetAllAsync(TableType.DiningTable, cancellationToken: cancellationToken);
+        return allTables.Select(MapToResponse).ToList();
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var table = await _tableRepository.GetByIdAsync(id, cancellationToken)

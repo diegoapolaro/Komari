@@ -12,6 +12,7 @@ public class KomariDbContext : DbContext
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Table> Tables => Set<Table>();
+    public DbSet<Bill> Bills => Set<Bill>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

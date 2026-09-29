@@ -62,9 +62,23 @@ public class TableRepository : ITableRepository
         return await query.AnyAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<int>> GetExistingNumbersAsync(TableType type, CancellationToken cancellationToken = default)
+    {
+        return await _context.Tables
+            .Where(t => t.Type == type && t.IsActive)
+            .Select(t => t.Number)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddAsync(Table table, CancellationToken cancellationToken = default)
     {
         await _context.Tables.AddAsync(table, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task AddRangeAsync(IEnumerable<Table> tables, CancellationToken cancellationToken = default)
+    {
+        await _context.Tables.AddRangeAsync(tables, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
 

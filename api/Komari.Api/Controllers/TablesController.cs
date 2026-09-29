@@ -59,6 +59,20 @@ public class TablesController : ApiControllerBase
     }
 
     /// <summary>
+    /// Inicializa ou sincroniza em lote as N mesas de salão do restaurante (ex: 1 a 20).
+    /// </summary>
+    [HttpPost("initialize")]
+    [ProducesResponseType(typeof(IReadOnlyList<TableResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<TableResponse>>> Initialize(
+        [FromBody] InitializeTablesRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _tableService.InitializeTablesAsync(request, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
     /// Atualiza os dados cadastrais de uma mesa ou posição de balcão.
     /// </summary>
     [HttpPut("{id:guid}")]

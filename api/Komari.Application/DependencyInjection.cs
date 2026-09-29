@@ -1,4 +1,6 @@
 using FluentValidation;
+using Komari.Application.Bills.Interfaces;
+using Komari.Application.Bills.Services;
 using Komari.Application.Categories.Interfaces;
 using Komari.Application.Categories.Services;
 using Komari.Application.Products.Interfaces;
@@ -18,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<ITableService, TableService>();
+        services.AddScoped<IBillService, BillService>();
 
         return services;
     }

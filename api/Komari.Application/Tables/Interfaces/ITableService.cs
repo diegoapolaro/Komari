@@ -19,5 +19,7 @@ public interface ITableService
 
     Task UpdateStatusAsync(Guid id, TableStatus status, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<TableResponse>> InitializeTablesAsync(InitializeTablesRequest request, CancellationToken cancellationToken = default);
+
     Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }

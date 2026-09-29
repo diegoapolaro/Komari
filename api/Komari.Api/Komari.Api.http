@@ -169,3 +169,71 @@ Content-Type: application/json
   "type": 2,
   "location": "Balcão Chopp"
 }
+
+### 24. Abrir Comanda Vinculada a Mesa (Comanda nº 10, vinculada à Mesa 1)
+# @name openBillTable
+POST {{Komari.Api_HostAddress}}/api/v1/bills
+Content-Type: application/json
+
+{
+  "number": 10,
+  "tableId": "{{createTable.response.body.id}}",
+  "customerName": "Lucas Silva",
+  "notes": "Cliente solicitou mesa perto da tomada"
+}
+
+### 25. Abrir Comanda Avulsa / Balcão (Comanda nº 11, sem mesa associada)
+# @name openBillCounter
+POST {{Komari.Api_HostAddress}}/api/v1/bills
+Content-Type: application/json
+
+{
+  "number": 11,
+  "customerName": "Ana Oliveira",
+  "notes": "Consumo direto no balcão"
+}
+
+### 26. Teste de Conflito: Tentar abrir comanda com mesmo número já em aberto (nº 10)
+POST {{Komari.Api_HostAddress}}/api/v1/bills
+Content-Type: application/json
+
+{
+  "number": 10,
+  "customerName": "Outro Cliente"
+}
+
+### 27. Listar todas as Comandas
+GET {{Komari.Api_HostAddress}}/api/v1/bills
+Accept: application/json
+
+### 28. Filtrar apenas Comandas Abertas
+GET {{Komari.Api_HostAddress}}/api/v1/bills?status=1
+Accept: application/json
+
+### 29. Buscar Comanda Ativa pelo Número Físico (nº 10)
+GET {{Komari.Api_HostAddress}}/api/v1/bills/number/10
+Accept: application/json
+
+### 30. Verificar Status da Mesa (deve estar como Occupied = 2)
+GET {{Komari.Api_HostAddress}}/api/v1/tables/{{createTable.response.body.id}}
+Accept: application/json
+
+### 31. Encerrar Comanda nº 10 (Mesa vinculada deve voltar para Available = 1)
+POST {{Komari.Api_HostAddress}}/api/v1/bills/{{openBillTable.response.body.id}}/close
+Content-Type: application/json
+
+{
+  "notes": "Pagamento 100% quitado no balcão"
+}
+
+### 32. Verificar Status da Mesa após encerramento (deve ter voltado para Available = 1)
+GET {{Komari.Api_HostAddress}}/api/v1/tables/{{createTable.response.body.id}}
+Accept: application/json
+
+### 33. Cancelar Comanda Avulsa nº 11 com justificativa de auditoria
+POST {{Komari.Api_HostAddress}}/api/v1/bills/{{openBillCounter.response.body.id}}/cancel
+Content-Type: application/json
+
+{
+  "reason": "Cliente desistiu do atendimento antes de realizar qualquer pedido"
+}

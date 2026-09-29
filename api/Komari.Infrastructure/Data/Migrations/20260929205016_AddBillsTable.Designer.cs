@@ -3,6 +3,7 @@ using System;
 using Komari.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Komari.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(KomariDbContext))]
-    partial class KomariDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260929205016_AddBillsTable")]
+    partial class AddBillsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,10 +33,6 @@ namespace Komari.Infrastructure.Data.Migrations
 
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CounterName")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
