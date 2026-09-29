@@ -1,0 +1,24 @@
+using FluentValidation;
+using Komari.Application.Categories.Interfaces;
+using Komari.Application.Categories.Services;
+using Komari.Application.Products.Interfaces;
+using Komari.Application.Products.Services;
+using Komari.Application.Tables.Interfaces;
+using Komari.Application.Tables.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace Komari.Application;
+
+public static class DependencyInjection
+{
+    public static IServiceCollection AddApplicationServices(this IServiceCollection services)
+    {
+        services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly);
+
+        services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<ITableService, TableService>();
+
+        return services;
+    }
+}

@@ -1,0 +1,171 @@
+@Komari.Api_HostAddress = http://localhost:5105
+
+### 1. Health Check
+GET {{Komari.Api_HostAddress}}/
+Accept: application/json
+
+### 2. Criar Categoria (Pizzas Salgadas)
+# @name createCategory
+POST {{Komari.Api_HostAddress}}/api/v1/categories
+Content-Type: application/json
+
+{
+  "name": "Pizzas Tradicionais",
+  "description": "Pizzas clássicas assadas em forno a lenha",
+  "displayOrder": 1
+}
+
+### 3. Criar Segunda Categoria (Bebidas)
+POST {{Komari.Api_HostAddress}}/api/v1/categories
+Content-Type: application/json
+
+{
+  "name": "Bebidas",
+  "description": "Refrigerantes, sucos naturais e cervejas",
+  "displayOrder": 2
+}
+
+### 4. Listar todas as Categorias
+GET {{Komari.Api_HostAddress}}/api/v1/categories
+Accept: application/json
+
+### 5. Obter Categoria por ID (Substitua pelo ID gerado)
+GET {{Komari.Api_HostAddress}}/api/v1/categories/{{createCategory.response.body.id}}
+Accept: application/json
+
+### 6. Atualizar Categoria
+PUT {{Komari.Api_HostAddress}}/api/v1/categories/{{createCategory.response.body.id}}
+Content-Type: application/json
+
+{
+  "name": "Pizzas Tradicionais & Especiais",
+  "description": "Pizzas artesanais assadas em forno a lenha",
+  "displayOrder": 1
+}
+
+### 7. Cadastrar Produto (Calabresa)
+# @name createProduct
+POST {{Komari.Api_HostAddress}}/api/v1/products
+Content-Type: application/json
+
+{
+  "name": "Pizza de Calabresa",
+  "description": "Molho de tomate artesanal, mussarela, calabresa fatiada e cebola fresca",
+  "price": 49.90,
+  "categoryId": "{{createCategory.response.body.id}}",
+  "imageUrl": "https://images.unsplash.com/photo-1513104890138-7c749659a591"
+}
+
+### 8. Listar todos os Produtos
+GET {{Komari.Api_HostAddress}}/api/v1/products
+Accept: application/json
+
+### 9. Filtrar Produtos por Categoria
+GET {{Komari.Api_HostAddress}}/api/v1/products?categoryId={{createCategory.response.body.id}}
+Accept: application/json
+
+### 10. Atualizar Produto
+PUT {{Komari.Api_HostAddress}}/api/v1/products/{{createProduct.response.body.id}}
+Content-Type: application/json
+
+{
+  "name": "Pizza de Calabresa Especial",
+  "description": "Molho artesanal, calabresa defumada especial, cebola e azeitonas pretas",
+  "price": 54.90,
+  "categoryId": "{{createCategory.response.body.id}}",
+  "imageUrl": "https://images.unsplash.com/photo-1513104890138-7c749659a591"
+}
+
+### 11. Alternar Disponibilidade do Produto (Pausar Item)
+PATCH {{Komari.Api_HostAddress}}/api/v1/products/{{createProduct.response.body.id}}/availability
+Content-Type: application/json
+
+{
+  "isAvailable": false
+}
+
+### 12. Soft Delete de Produto
+DELETE {{Komari.Api_HostAddress}}/api/v1/products/{{createProduct.response.body.id}}
+
+### 13. Teste de Validação (Payload Inválido: Preço negativo e nome vazio)
+POST {{Komari.Api_HostAddress}}/api/v1/products
+Content-Type: application/json
+
+{
+  "name": "",
+  "price": -10.00,
+  "categoryId": "00000000-0000-0000-0000-000000000000"
+}
+
+### 14. Cadastrar Mesa no Salão (Mesa 1, 4 Lugares)
+# @name createTable
+POST {{Komari.Api_HostAddress}}/api/v1/tables
+Content-Type: application/json
+
+{
+  "number": 1,
+  "capacity": 4,
+  "type": 1,
+  "location": "Salão Principal"
+}
+
+### 15. Cadastrar Posição de Balcão (Balcão 1, 1 Lugar)
+# @name createCounter
+POST {{Komari.Api_HostAddress}}/api/v1/tables
+Content-Type: application/json
+
+{
+  "number": 1,
+  "capacity": 1,
+  "type": 2,
+  "location": "Balcão Bar"
+}
+
+### 16. Listar todas as Mesas e Balcões
+GET {{Komari.Api_HostAddress}}/api/v1/tables
+Accept: application/json
+
+### 17. Filtrar apenas Mesas de Salão
+GET {{Komari.Api_HostAddress}}/api/v1/tables?type=1
+Accept: application/json
+
+### 18. Filtrar apenas Posições de Balcão
+GET {{Komari.Api_HostAddress}}/api/v1/tables?type=2
+Accept: application/json
+
+### 19. Obter Mesa por ID
+GET {{Komari.Api_HostAddress}}/api/v1/tables/{{createTable.response.body.id}}
+Accept: application/json
+
+### 20. Atualizar Dados da Mesa (Aumentar capacidade para 6 lugares)
+PUT {{Komari.Api_HostAddress}}/api/v1/tables/{{createTable.response.body.id}}
+Content-Type: application/json
+
+{
+  "number": 1,
+  "capacity": 6,
+  "type": 1,
+  "location": "Salão Principal - Janela"
+}
+
+### 21. Atualizar Status da Mesa para Ocupada
+PATCH {{Komari.Api_HostAddress}}/api/v1/tables/{{createTable.response.body.id}}/status
+Content-Type: application/json
+
+{
+  "status": 2
+}
+
+### 22. Inativar Mesa (Soft Delete)
+DELETE {{Komari.Api_HostAddress}}/api/v1/tables/{{createTable.response.body.id}}
+
+### 23. Teste de Conflito de Duplicidade (Mesmo número e tipo)
+POST {{Komari.Api_HostAddress}}/api/v1/tables
+Content-Type: application/json
+
+{
+  "number": 1,
+  "capacity": 2,
+  "type": 2,
+  "location": "Balcão Chopp"
+}

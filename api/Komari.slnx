@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Komari.Api/Komari.Api.csproj" />
+  <Project Path="Komari.Application/Komari.Application.csproj" />
+  <Project Path="Komari.Domain/Komari.Domain.csproj" />
+  <Project Path="Komari.Infrastructure/Komari.Infrastructure.csproj" />
+</Solution>

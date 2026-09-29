@@ -1,0 +1,98 @@
+# =============================================================================
+# Komari Monorepo - .gitignore
+# Stack: .NET 10 (API) + React 19 / Vite (Web) + React Native / Expo (Mobile)
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. .NET & C# / Visual Studio / JetBrains Rider
+# -----------------------------------------------------------------------------
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/.vscode/*
+!**/.vscode/extensions.json
+!**/.vscode/launch.json
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.userprefs
+TestResults/
+[Bb]uild/
+*.nupkg
+*.snupkg
+
+# -----------------------------------------------------------------------------
+# 2. Node.js / NPM / Yarn / PNPM / Bun
+# -----------------------------------------------------------------------------
+**/node_modules/
+**/npm-debug.log*
+**/yarn-debug.log*
+**/yarn-error.log*
+**/pnpm-debug.log*
+**/lerna-debug.log*
+
+# -----------------------------------------------------------------------------
+# 3. Web (React + Vite)
+# -----------------------------------------------------------------------------
+web/dist/
+web/dist-ssr/
+web-build/
+**/dist/
+**/dist-ssr/
+
+# -----------------------------------------------------------------------------
+# 4. Mobile (React Native + Expo)
+# -----------------------------------------------------------------------------
+**/.expo/
+expo-env.d.ts
+*.tsbuildinfo
+**/.metro-health-check*
+**/.kotlin/
+
+# Mobile Native Builds & Credentials (se prebuild for executado)
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+/mobile/android/
+/mobile/ios/
+
+# -----------------------------------------------------------------------------
+# 5. Environment, Secrets & Local Configurations
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.local
+appsettings*.local.json
+appsettings.Production.json
+
+# -----------------------------------------------------------------------------
+# 6. Docker & Databases
+# -----------------------------------------------------------------------------
+postgres_data/
+
+# -----------------------------------------------------------------------------
+# 7. OS & System Caches
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# -----------------------------------------------------------------------------
+# 8. AI Assistants & Tooling Logs
+# -----------------------------------------------------------------------------
+.system_generated/
+.gemini/
+.claude/
+*.log
