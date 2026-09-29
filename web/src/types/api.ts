@@ -471,6 +471,376 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/CashSessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["CashSessionStatus"];
+                    includeInactive?: boolean;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashSessionResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/CashSessions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashSessionResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/CashSessions/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashSessionResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/CashSessions/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["OpenCashSessionRequest"];
+                    "text/json": components["schemas"]["OpenCashSessionRequest"];
+                    "application/*+json": components["schemas"]["OpenCashSessionRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashSessionResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/CashSessions/{id}/supply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AddCashMovementRequest"];
+                    "text/json": components["schemas"]["AddCashMovementRequest"];
+                    "application/*+json": components["schemas"]["AddCashMovementRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashMovementResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/CashSessions/{id}/withdrawal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AddCashMovementRequest"];
+                    "text/json": components["schemas"]["AddCashMovementRequest"];
+                    "application/*+json": components["schemas"]["AddCashMovementRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashMovementResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/CashSessions/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CloseCashSessionRequest"];
+                    "text/json": components["schemas"]["CloseCashSessionRequest"];
+                    "application/*+json": components["schemas"]["CloseCashSessionRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CashSessionResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/Categories": {
         parameters: {
             query?: never;
@@ -1039,6 +1409,203 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/Payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["RegisterPaymentRequest"];
+                    "text/json": components["schemas"]["RegisterPaymentRequest"];
+                    "application/*+json": components["schemas"]["RegisterPaymentRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ValidationProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/Payments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/Payments/by-bill/{billId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    billId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentResponse"][];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/Payments/by-session/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    sessionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PaymentResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1643,6 +2210,12 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AddCashMovementRequest: {
+            type?: components["schemas"]["CashMovementType"];
+            /** Format: double */
+            amount?: number;
+            description?: string | null;
+        };
         AddItemsToOrderRequest: {
             items?: components["schemas"]["CreateOrderItemRequest"][] | null;
         };
@@ -1661,8 +2234,14 @@ export interface components {
             notes?: string | null;
             /** Format: double */
             totalAmount?: number;
+            /** Format: double */
+            totalPaid?: number;
+            /** Format: double */
+            remainingBalance?: number;
             /** Format: int32 */
             ordersCount?: number;
+            /** Format: int32 */
+            paymentsCount?: number;
             /** Format: date-time */
             openedAt?: string;
             /** Format: date-time */
@@ -1684,6 +2263,58 @@ export interface components {
         CancelOrderRequest: {
             reason?: string | null;
         };
+        CashMovementResponse: {
+            /** Format: uuid */
+            id?: string;
+            type?: components["schemas"]["CashMovementType"];
+            /** Format: double */
+            amount?: number;
+            description?: string | null;
+            /** Format: date-time */
+            performedAt?: string;
+            isActive?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        CashMovementType: 1 | 2;
+        CashSessionResponse: {
+            /** Format: uuid */
+            id?: string;
+            status?: components["schemas"]["CashSessionStatus"];
+            /** Format: double */
+            initialAmount?: number;
+            /** Format: double */
+            declaredAmount?: number | null;
+            /** Format: double */
+            expectedCashAmount?: number;
+            /** Format: double */
+            variance?: number | null;
+            operatorName?: string | null;
+            /** Format: date-time */
+            openedAt?: string;
+            /** Format: date-time */
+            closedAt?: string | null;
+            closingNotes?: string | null;
+            /** Format: int32 */
+            totalPayments?: number;
+            /** Format: int32 */
+            totalMovements?: number;
+            movements?: components["schemas"]["CashMovementResponse"][] | null;
+            isActive?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string | null;
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        CashSessionStatus: 1 | 2;
         CategoryResponse: {
             /** Format: uuid */
             id?: string;
@@ -1696,6 +2327,11 @@ export interface components {
             createdAt?: string;
         };
         CloseBillRequest: {
+            notes?: string | null;
+        };
+        CloseCashSessionRequest: {
+            /** Format: double */
+            declaredAmount?: number;
             notes?: string | null;
         };
         CreateCategoryRequest: {
@@ -1750,6 +2386,11 @@ export interface components {
             customerName?: string | null;
             notes?: string | null;
         };
+        OpenCashSessionRequest: {
+            /** Format: double */
+            initialAmount?: number;
+            operatorName?: string | null;
+        };
         OrderItemResponse: {
             /** Format: uuid */
             id?: string;
@@ -1796,6 +2437,40 @@ export interface components {
          * @enum {integer}
          */
         OrderStatus: 1 | 2 | 3 | 4 | 5 | 6;
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        PaymentMethod: 1 | 2 | 3 | 4 | 5;
+        PaymentResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            billId?: string;
+            /** Format: int32 */
+            billNumber?: number;
+            /** Format: uuid */
+            cashSessionId?: string;
+            method?: components["schemas"]["PaymentMethod"];
+            /** Format: double */
+            amount?: number;
+            /** Format: double */
+            amountTendered?: number | null;
+            /** Format: double */
+            changeGiven?: number;
+            /** Format: date-time */
+            paidAt?: string;
+            notes?: string | null;
+            /** Format: double */
+            billTotalAmount?: number;
+            /** Format: double */
+            billTotalPaid?: number;
+            /** Format: double */
+            billRemainingBalance?: number;
+            isActive?: boolean;
+            /** Format: date-time */
+            createdAt?: string;
+        };
         ProblemDetails: {
             type?: string | null;
             title?: string | null;
@@ -1821,6 +2496,16 @@ export interface components {
             isActive?: boolean;
             /** Format: date-time */
             createdAt?: string;
+        };
+        RegisterPaymentRequest: {
+            /** Format: uuid */
+            billId?: string;
+            method?: components["schemas"]["PaymentMethod"];
+            /** Format: double */
+            amount?: number;
+            /** Format: double */
+            amountTendered?: number | null;
+            notes?: string | null;
         };
         TableResponse: {
             /** Format: uuid */

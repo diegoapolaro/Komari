@@ -217,4 +217,9 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(data),
     }),
+  updateOrderStatus: (id: string, data: { status: OrderStatusType }) =>
+    request<OrderResponse>(`/api/v1/Orders/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 }

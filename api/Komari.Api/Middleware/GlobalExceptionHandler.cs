@@ -57,6 +57,16 @@ public class GlobalExceptionHandler : IExceptionHandler
                     Instance = httpContext.Request.Path
                 }
             ),
+            InvalidOperationException invalidOperationException => (
+                StatusCodes.Status400BadRequest,
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "Operação inválida para o estado atual",
+                    Detail = invalidOperationException.Message,
+                    Instance = httpContext.Request.Path
+                }
+            ),
             _ => (
                 StatusCodes.Status500InternalServerError,
                 new ProblemDetails

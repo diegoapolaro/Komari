@@ -10,6 +10,7 @@ namespace Komari.Domain.Entities;
 public class Bill : BaseEntity
 {
     private readonly List<Order> _orders = new();
+    private readonly List<Payment> _payments = new();
 
     public int Number { get; private set; }
     public Guid? TableId { get; private set; }
@@ -22,6 +23,7 @@ public class Bill : BaseEntity
     public DateTime? ClosedAt { get; private set; }
 
     public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
+    public IReadOnlyCollection<Payment> Payments => _payments.AsReadOnly();
 
     /// <summary>
     /// Calcula o valor total consumido na comanda em tempo real, somando os pedidos não cancelados.
@@ -29,6 +31,18 @@ public class Bill : BaseEntity
     public decimal TotalAmount => _orders
         .Where(o => o.IsActive && o.Status != OrderStatus.Cancelled)
         .Sum(o => o.Total);
+
+    /// <summary>
+    /// Valor total já pago na comanda, somando todos os pagamentos ativos.
+    /// </summary>
+    public decimal TotalPaid => _payments
+        .Where(p => p.IsActive)
+        .Sum(p => p.Amount);
+
+    /// <summary>
+    /// Saldo devedor restante. Quando zero ou negativo, a comanda está quitada.
+    /// </summary>
+    public decimal RemainingBalance => TotalAmount - TotalPaid;
 
     // Construtor protegido exigido pelo EF Core
     protected Bill() { }
@@ -84,6 +98,12 @@ public class Bill : BaseEntity
         if (HasPendingOrInPreparationOrders())
         {
             throw new InvalidOperationException("Não é possível encerrar uma comanda com pedidos pendentes ou em preparação na cozinha.");
+        }
+
+        if (RemainingBalance > 0)
+        {
+            throw new InvalidOperationException(
+                $"Não é possível encerrar a comanda #{Number} com saldo devedor de R$ {RemainingBalance:F2}. Registre os pagamentos antes de fechar.");
         }
 
         Status = BillStatus.Closed;

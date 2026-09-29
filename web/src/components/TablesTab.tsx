@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { BillStatus } from '../constants/enums'
+import { BillStatus, OrderStatus, TableStatus } from '../constants/enums'
 import {
   api,
   type BillResponse,
@@ -10,10 +10,10 @@ import {
 
 export function TablesTab() {
   const queryClient = useQueryClient()
-  const [selectedTable, setSelectedTable] = useState<TableResponse | null>(null)
+  const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
 
-  // 1. Consulta de mesas
+  // 1. Consulta de mesas cadastradas
   const {
     data: tables = [],
     isLoading: isLoadingTables,
@@ -23,11 +23,11 @@ export function TablesTab() {
     queryFn: () => api.getTables(),
   })
 
-  // 2. Consulta de comandas ativas (para saber quais mesas estão abertas)
+  // 2. Consulta de comandas ativas
   const { data: openBills = [] } = useQuery({
     queryKey: ['bills', 'open'],
     queryFn: () => api.getBills({ status: BillStatus.Open }),
-    refetchInterval: 5000,
+    refetchInterval: 4000,
   })
 
   // 3. Inicialização de mesas se o restaurante ainda não tiver nenhuma cadastrada
@@ -53,6 +53,9 @@ export function TablesTab() {
   // Ordena mesas pelo número
   const sortedTables = [...tables].sort((a, b) => (a.number ?? 0) - (b.number ?? 0))
 
+  // Mesa atualmente selecionada para o modal
+  const selectedTable = sortedTables.find((t) => t.id === selectedTableId) || null
+
   return (
     <div className="space-y-6">
       {/* Cabeçalho limpo */}
@@ -62,7 +65,7 @@ export function TablesTab() {
             Salão & Mesas
           </h2>
           <p className="text-xs text-zinc-500">
-            Clique em um quadrado de mesa para abrir o atendimento, lançar itens ou fechar a conta.
+            Mesas verdes estão abertas para atendimento. Mesas laranja avermelhado estão fechadas.
           </p>
         </div>
 
@@ -92,7 +95,7 @@ export function TablesTab() {
         </div>
       )}
 
-      {/* Grade de Mesas: Quadrados verdes com fonte branca no meio */}
+      {/* Grade de Mesas: Quadrados verdes (abertas) ou laranja quase vermelho (fechadas) com fonte branca no meio */}
       {isLoadingTables ? (
         <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center text-xs text-zinc-500">
           Carregando mesas do salão...
@@ -108,32 +111,27 @@ export function TablesTab() {
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {sortedTables.map((table) => {
-            const activeBill = table.id ? activeBillByTableId.get(table.id) : undefined
-            const isOpen = Boolean(activeBill)
+            // Mesa fechada = status Closing (4). Naturalmente aberta = qualquer outro status.
+            const isClosed = table.status === TableStatus.Closing
+            const tileBg = isClosed
+              ? 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-400/50'
+              : 'bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-400/50'
 
             return (
               <button
                 key={table.id}
                 type="button"
-                onClick={() => setSelectedTable(table)}
-                className="group relative flex aspect-square cursor-pointer flex-col items-center justify-center rounded-2xl bg-emerald-600 p-4 shadow-md transition-all duration-150 hover:bg-emerald-700 hover:shadow-lg hover:scale-105 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-400/50"
+                onClick={() => setSelectedTableId(table.id ?? null)}
+                className={`group relative flex aspect-square cursor-pointer flex-col items-center justify-center rounded-2xl ${tileBg} p-4 shadow-md transition-all duration-150 hover:shadow-lg hover:scale-105 active:scale-95 focus:outline-none focus:ring-4`}
               >
-                {/* Indicador discreto no topo se a mesa estiver aberta com consumo */}
-                {isOpen && (
-                  <span className="absolute top-2.5 right-2.5 flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-white" />
-                  </span>
-                )}
-
-                {/* Número da mesa em fonte branca grande no meio */}
+                {/* Número da mesa em fonte branca grande no centro */}
                 <span className="font-mono text-3xl sm:text-4xl font-black text-white select-none">
                   {table.number}
                 </span>
 
-                {/* Legenda sutil de status */}
-                <span className="mt-1 text-[11px] font-medium text-emerald-100 opacity-90 select-none">
-                  {isOpen ? 'Aberta' : 'Livre'}
+                {/* Rótulo de status em branco */}
+                <span className="mt-1 text-[11px] font-semibold text-white/90 select-none">
+                  {isClosed ? 'Fechada' : 'Aberta'}
                 </span>
               </button>
             )
@@ -141,12 +139,12 @@ export function TablesTab() {
         </div>
       )}
 
-      {/* Guia Pequena (Modal de Detalhes da Mesa) */}
+      {/* Guia Pequena (Modal de Operação Direta da Mesa) */}
       {selectedTable && (
         <TableDetailsModal
           table={selectedTable}
           activeBill={selectedTable.id ? activeBillByTableId.get(selectedTable.id) : undefined}
-          onClose={() => setSelectedTable(null)}
+          onClose={() => setSelectedTableId(null)}
         />
       )}
     </div>
@@ -167,16 +165,17 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
   const [actionMessage, setActionMessage] = useState<string | null>(null)
   const [customerModalNotice, setCustomerModalNotice] = useState(false)
 
-  const isOpen = Boolean(activeBill)
+  // Mesa fechada se o status dela for Closing
+  const isClosed = table.status === TableStatus.Closing
 
-  // 1. Busca produtos para adicionar na mesa
+  // 1. Busca produtos do cardápio para adicionar na mesa
   const { data: products = [] } = useQuery({
     queryKey: ['products'],
     queryFn: () => api.getProducts(),
-    enabled: isOpen,
+    enabled: !isClosed,
   })
 
-  // 2. Busca pedidos da comanda ativa para listar o consumo
+  // 2. Busca pedidos da comanda ativa (se existir) para listar o consumo
   const { data: orders = [], isLoading: isLoadingOrders } = useQuery({
     queryKey: ['orders', activeBill?.id],
     queryFn: () => (activeBill?.id ? api.getOrdersByBillId(activeBill.id) : Promise.resolve([])),
@@ -191,29 +190,45 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
     0,
   )
 
-  // Mutação: Abrir Mesa
-  const openTableMutation = useMutation({
-    mutationFn: () =>
-      api.openBill({
-        tableId: table.id,
-        notes: `Atendimento aberto na Mesa #${table.number}`,
-      }),
+  // Mutação: Reabrir Mesa (quando estiver fechada)
+  const reopenTableMutation = useMutation({
+    mutationFn: async () => {
+      if (!table.id) return
+      // Retorna o status da mesa para Disponível (Aberta)
+      await api.updateTableStatus(table.id, { status: TableStatus.Available })
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bills'] })
       queryClient.invalidateQueries({ queryKey: ['tables'] })
-      setActionMessage('Mesa aberta com sucesso! Agora você pode lançar os itens.')
+      queryClient.invalidateQueries({ queryKey: ['bills'] })
+      setActionMessage('Mesa reaberta com sucesso! Pronta para novos lançamentos.')
     },
     onError: (err: Error) => {
-      setActionMessage(`Erro ao abrir mesa: ${err.message}`)
+      setActionMessage(`Erro ao reabrir mesa: ${err.message}`)
     },
   })
 
-  // Mutação: Adicionar Item na Mesa
+  // Mutação: Lançar Item na Mesa (cria comanda automaticamente se ainda não existir)
   const addItemMutation = useMutation({
     mutationFn: async () => {
-      if (!activeBill?.id || !selectedProductId) return
+      if (!table.id || !selectedProductId) return
+
+      let currentBillId = activeBill?.id
+
+      // Se a mesa ainda não tiver comanda ativa, cria uma automaticamente de forma transparente
+      if (!currentBillId) {
+        const newBill = await api.openBill({
+          tableId: table.id,
+          notes: `Atendimento Mesa #${table.number}`,
+        })
+        currentBillId = newBill.id
+      }
+
+      if (!currentBillId) {
+        throw new Error('Não foi possível identificar a comanda da mesa.')
+      }
+
       await api.createOrder({
-        billId: activeBill.id,
+        billId: currentBillId,
         items: [
           {
             productId: selectedProductId,
@@ -224,26 +239,49 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders', activeBill?.id] })
+      queryClient.invalidateQueries({ queryKey: ['tables'] })
+      queryClient.invalidateQueries({ queryKey: ['bills'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
       setSelectedProductId('')
       setQuantity(1)
       setItemNotes('')
-      setActionMessage('Item lançado na mesa!')
+      setActionMessage('Item adicionado à mesa!')
     },
     onError: (err: Error) => {
-      setActionMessage(`Erro ao lançar item: ${err.message}`)
+      setActionMessage(`Erro ao adicionar item: ${err.message}`)
     },
   })
 
-  // Mutação: Fechar Mesa
+  // Mutação: Fechar Mesa (finaliza pedidos pendentes, fecha comanda e muda cor para laranja quase vermelho)
   const closeTableMutation = useMutation({
     mutationFn: async () => {
-      if (!activeBill?.id) return
-      await api.closeBill(activeBill.id)
+      if (!table.id) return
+
+      // 1. Se houver comanda com pedidos pendentes, finaliza os pedidos para que o backend permita o fechamento
+      if (activeBill?.id) {
+        try {
+          const currentOrders = await api.getOrdersByBillId(activeBill.id)
+          for (const order of currentOrders) {
+            if (
+              order.id &&
+              (order.status === OrderStatus.Pending || order.status === OrderStatus.InPreparation)
+            ) {
+              await api.updateOrderStatus(order.id, { status: OrderStatus.Delivered })
+            }
+          }
+          await api.closeBill(activeBill.id)
+        } catch {
+          // Continua mesmo se a comanda já tiver sido fechada
+        }
+      }
+
+      // 2. Define o status da mesa como Closing (Fechada -> cor laranja quase vermelho)
+      await api.updateTableStatus(table.id, { status: TableStatus.Closing })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bills'] })
       queryClient.invalidateQueries({ queryKey: ['tables'] })
+      queryClient.invalidateQueries({ queryKey: ['bills'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
       setActionMessage('Mesa fechada com sucesso.')
     },
     onError: (err: Error) => {
@@ -259,11 +297,15 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-      <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="flex max-h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-150">
         {/* Cabeçalho da Guia Pequena */}
         <div className="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 font-mono text-lg font-black text-white shadow-sm">
+            <div
+              className={`flex h-10 w-10 items-center justify-center rounded-xl font-mono text-lg font-black text-white shadow-sm ${
+                isClosed ? 'bg-orange-600' : 'bg-emerald-600'
+              }`}
+            >
               {table.number}
             </div>
             <div>
@@ -273,19 +315,19 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
               <div className="flex items-center gap-2">
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                    isOpen
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-zinc-200 text-zinc-700'
+                    isClosed
+                      ? 'bg-orange-100 text-orange-800'
+                      : 'bg-emerald-100 text-emerald-800'
                   }`}
                 >
                   <span
                     className={`h-1.5 w-1.5 rounded-full ${
-                      isOpen ? 'bg-emerald-600' : 'bg-zinc-500'
+                      isClosed ? 'bg-orange-600' : 'bg-emerald-600'
                     }`}
                   />
-                  {isOpen ? 'Mesa Aberta' : 'Mesa Fechada'}
+                  {isClosed ? 'Mesa Fechada' : 'Mesa Aberta'}
                 </span>
-                {isOpen && activeBill && (
+                {!isClosed && activeBill && (
                   <span className="text-[11px] text-zinc-400">
                     • Comanda #{activeBill.number}
                   </span>
@@ -317,7 +359,7 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
           </div>
         )}
 
-        {/* Barra superior de ações auxiliares: Botão Vincular a Cliente */}
+        {/* Barra superior: Botão Vincular Cliente (não funcional por enquanto) */}
         <div className="border-b border-zinc-100 px-6 py-2.5 bg-zinc-50/50 flex items-center justify-between">
           <button
             type="button"
@@ -338,37 +380,39 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
           )}
         </div>
 
-        {/* Corpo principal do Modal */}
+        {/* Corpo principal da Guia Pequena */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
-          {!isOpen ? (
+          {isClosed ? (
             /* CENÁRIO 1: MESA FECHADA */
             <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-3xl">
-                🍽️
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-orange-100 text-3xl text-orange-600">
+                🔒
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-zinc-900">
+                <h4 className="text-sm font-bold text-zinc-900">
                   A Mesa {table.number} está Fechada
                 </h4>
                 <p className="mt-1 text-xs text-zinc-500 max-w-xs">
-                  Abra a mesa para iniciar o atendimento, permitir o lançamento de produtos e registrar o consumo.
+                  A conta desta mesa foi encerrada. Clique no botão abaixo para reabri-la e receber novos pedidos.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={() => openTableMutation.mutate()}
-                disabled={openTableMutation.isPending}
+                onClick={() => reopenTableMutation.mutate()}
+                disabled={reopenTableMutation.isPending}
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 active:scale-95 disabled:opacity-50 transition"
               >
                 <span>🟢</span>
-                <span>{openTableMutation.isPending ? 'Abrindo Mesa...' : 'Abrir Mesa'}</span>
+                <span>
+                  {reopenTableMutation.isPending ? 'Reabrindo...' : 'Reabrir Mesa (Ficar Aberta)'}
+                </span>
               </button>
             </div>
           ) : (
-            /* CENÁRIO 2: MESA ABERTA */
+            /* CENÁRIO 2: MESA ABERTA NATURALMENTE */
             <div className="space-y-5">
-              {/* Lançamento de Itens */}
+              {/* Formulário: Lançar Itens na Mesa */}
               <div className="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700 mb-3">
                   + Lançar Itens na Mesa
@@ -457,7 +501,7 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-700">
-                    Consumo da Mesa ({consumedItems.length} {consumedItems.length === 1 ? 'item' : 'itens'})
+                    Consumo Atual ({consumedItems.length} {consumedItems.length === 1 ? 'item' : 'itens'})
                   </h4>
                   {isLoadingOrders && (
                     <span className="text-[10px] text-zinc-400 animate-pulse">Atualizando...</span>
@@ -466,7 +510,7 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
 
                 {consumedItems.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-zinc-300 p-6 text-center text-xs text-zinc-400">
-                    Nenhum item adicionado ainda nesta mesa.
+                    Nenhum item consumido ainda nesta mesa. Lance o primeiro produto acima!
                   </div>
                 ) : (
                   <div className="overflow-hidden rounded-xl border border-zinc-200">
@@ -507,7 +551,7 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
           )}
         </div>
 
-        {/* Rodapé da Guia Pequena: Fechar Mesa */}
+        {/* Rodapé da Guia Pequena */}
         <div className="border-t border-zinc-200 bg-zinc-50 px-6 py-3.5 flex items-center justify-between">
           <button
             type="button"
@@ -517,19 +561,19 @@ function TableDetailsModal({ table, activeBill, onClose }: TableDetailsModalProp
             Fechar Janela
           </button>
 
-          {isOpen && (
+          {!isClosed && (
             <button
               type="button"
               onClick={() => {
-                if (confirm(`Deseja realmente fechar a conta e liberar a Mesa #${table.number}?`)) {
+                if (confirm(`Deseja realmente fechar a Mesa #${table.number}? A cor da mesa mudará para laranja avermelhado.`)) {
                   closeTableMutation.mutate()
                 }
               }}
               disabled={closeTableMutation.isPending}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-red-700 active:scale-95 disabled:opacity-50 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-orange-600 px-4 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-orange-700 active:scale-95 disabled:opacity-50 transition"
             >
-              <span>🔴</span>
-              <span>{closeTableMutation.isPending ? 'Encerrando...' : 'Fechar Mesa'}</span>
+              <span>🔒</span>
+              <span>{closeTableMutation.isPending ? 'Fechando Mesa...' : 'Fechar Mesa'}</span>
             </button>
           )}
         </div>
