@@ -20,6 +20,13 @@ public class CustomerRepository : ICustomerRepository
             .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
     }
 
+    public async Task<Customer?> GetByIdWithAddressesAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Customers
+            .Include(c => c.Addresses)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Customer>> GetAllAsync(
         string? searchTerm = null,
         bool includeInactive = false,
@@ -84,7 +91,29 @@ public class CustomerRepository : ICustomerRepository
 
     public async Task UpdateAsync(Customer customer, CancellationToken cancellationToken = default)
     {
-        _context.Customers.Update(customer);
+        var entry = _context.Entry(customer);
+        if (entry.State == EntityState.Detached)
+        {
+            _context.Customers.Update(customer);
+        }
+
+        foreach (var address in customer.Addresses)
+        {
+            var addressEntry = _context.Entry(address);
+            if (addressEntry.State == EntityState.Detached)
+            {
+                await _context.CustomerAddresses.AddAsync(address, cancellationToken);
+            }
+            else if (addressEntry.State == EntityState.Modified)
+            {
+                bool exists = await _context.CustomerAddresses.AsNoTracking().AnyAsync(a => a.Id == address.Id, cancellationToken);
+                if (!exists)
+                {
+                    addressEntry.State = EntityState.Added;
+                }
+            }
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
     }
 }

@@ -12,15 +12,21 @@ public class CustomerService : ICustomerService
     private readonly ICustomerRepository _customerRepository;
     private readonly IValidator<CreateCustomerRequest> _createValidator;
     private readonly IValidator<UpdateCustomerRequest> _updateValidator;
+    private readonly IValidator<CreateCustomerAddressRequest> _createAddressValidator;
+    private readonly IValidator<UpdateCustomerAddressRequest> _updateAddressValidator;
 
     public CustomerService(
         ICustomerRepository customerRepository,
         IValidator<CreateCustomerRequest> createValidator,
-        IValidator<UpdateCustomerRequest> updateValidator)
+        IValidator<UpdateCustomerRequest> updateValidator,
+        IValidator<CreateCustomerAddressRequest> createAddressValidator,
+        IValidator<UpdateCustomerAddressRequest> updateAddressValidator)
     {
         _customerRepository = customerRepository;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
+        _createAddressValidator = createAddressValidator;
+        _updateAddressValidator = updateAddressValidator;
     }
 
     public async Task<IReadOnlyList<CustomerResponse>> GetAllAsync(
@@ -111,6 +117,100 @@ public class CustomerService : ICustomerService
         await _customerRepository.UpdateAsync(customer, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<CustomerAddressResponse>> GetAddressesAsync(
+        Guid customerId,
+        CancellationToken cancellationToken = default)
+    {
+        var customer = await _customerRepository.GetByIdWithAddressesAsync(customerId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), customerId);
+
+        return customer.Addresses
+            .Where(a => a.IsActive)
+            .OrderByDescending(a => a.IsDefault)
+            .ThenByDescending(a => a.CreatedAt)
+            .Select(MapToAddressResponse)
+            .ToList();
+    }
+
+    public async Task<CustomerAddressResponse> AddAddressAsync(
+        Guid customerId,
+        CreateCustomerAddressRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        await _createAddressValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var customer = await _customerRepository.GetByIdWithAddressesAsync(customerId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), customerId);
+
+        var address = customer.AddAddress(
+            request.Street,
+            request.Number,
+            request.Neighborhood,
+            request.ZipCode,
+            request.Complement,
+            request.ReferencePoint,
+            request.IsDefault
+        );
+
+        await _customerRepository.UpdateAsync(customer, cancellationToken);
+
+        return MapToAddressResponse(address);
+    }
+
+    public async Task<CustomerAddressResponse> UpdateAddressAsync(
+        Guid customerId,
+        Guid addressId,
+        UpdateCustomerAddressRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        await _updateAddressValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var customer = await _customerRepository.GetByIdWithAddressesAsync(customerId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), customerId);
+
+        customer.UpdateAddress(
+            addressId,
+            request.Street,
+            request.Number,
+            request.Neighborhood,
+            request.ZipCode,
+            request.Complement,
+            request.ReferencePoint,
+            request.IsDefault
+        );
+
+        await _customerRepository.UpdateAsync(customer, cancellationToken);
+
+        var updatedAddress = customer.Addresses.First(a => a.Id == addressId);
+        return MapToAddressResponse(updatedAddress);
+    }
+
+    public async Task SetDefaultAddressAsync(
+        Guid customerId,
+        Guid addressId,
+        CancellationToken cancellationToken = default)
+    {
+        var customer = await _customerRepository.GetByIdWithAddressesAsync(customerId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), customerId);
+
+        customer.SetDefaultAddress(addressId);
+
+        await _customerRepository.UpdateAsync(customer, cancellationToken);
+    }
+
+    public async Task DeleteAddressAsync(
+        Guid customerId,
+        Guid addressId,
+        CancellationToken cancellationToken = default)
+    {
+        var customer = await _customerRepository.GetByIdWithAddressesAsync(customerId, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), customerId);
+
+        customer.RemoveAddress(addressId);
+
+        await _customerRepository.UpdateAsync(customer, cancellationToken);
+    }
+
     private static CustomerResponse MapToResponse(Customer customer) =>
         new(
             customer.Id,
@@ -122,5 +222,21 @@ public class CustomerService : ICustomerService
             customer.IsActive,
             customer.CreatedAt,
             customer.UpdatedAt
+        );
+
+    private static CustomerAddressResponse MapToAddressResponse(CustomerAddress address) =>
+        new(
+            address.Id,
+            address.CustomerId,
+            address.Street,
+            address.Number,
+            address.Neighborhood,
+            address.ZipCode,
+            address.Complement,
+            address.ReferencePoint,
+            address.IsDefault,
+            address.IsActive,
+            address.CreatedAt,
+            address.UpdatedAt
         );
 }

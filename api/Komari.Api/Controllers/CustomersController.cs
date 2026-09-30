@@ -101,4 +101,81 @@ public class CustomersController : ApiControllerBase
         await _customerService.DeleteAsync(id, cancellationToken);
         return NoContent();
     }
+
+    /// <summary>
+    /// Lista todos os endereços ativos de entrega cadastrados para o cliente.
+    /// </summary>
+    [HttpGet("{id:guid}/addresses")]
+    [ProducesResponseType(typeof(IReadOnlyList<CustomerAddressResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<CustomerAddressResponse>>> GetAddresses(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _customerService.GetAddressesAsync(id, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Cadastra um novo endereço de entrega para o cliente.
+    /// </summary>
+    [HttpPost("{id:guid}/addresses")]
+    [ProducesResponseType(typeof(CustomerAddressResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CustomerAddressResponse>> AddAddress(
+        Guid id,
+        [FromBody] CreateCustomerAddressRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _customerService.AddAddressAsync(id, request, cancellationToken);
+        return CreatedAtAction(nameof(GetAddresses), new { id }, result);
+    }
+
+    /// <summary>
+    /// Atualiza os dados de um endereço de entrega existente do cliente.
+    /// </summary>
+    [HttpPut("{id:guid}/addresses/{addressId:guid}")]
+    [ProducesResponseType(typeof(CustomerAddressResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CustomerAddressResponse>> UpdateAddress(
+        Guid id,
+        Guid addressId,
+        [FromBody] UpdateCustomerAddressRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await _customerService.UpdateAddressAsync(id, addressId, request, cancellationToken);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Define um endereço específico como o endereço padrão de entrega do cliente.
+    /// </summary>
+    [HttpPatch("{id:guid}/addresses/{addressId:guid}/default")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetDefaultAddress(
+        Guid id,
+        Guid addressId,
+        CancellationToken cancellationToken = default)
+    {
+        await _customerService.SetDefaultAddressAsync(id, addressId, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Remove (inativa) um endereço de entrega do cliente.
+    /// </summary>
+    [HttpDelete("{id:guid}/addresses/{addressId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteAddress(
+        Guid id,
+        Guid addressId,
+        CancellationToken cancellationToken = default)
+    {
+        await _customerService.DeleteAddressAsync(id, addressId, cancellationToken);
+        return NoContent();
+    }
 }

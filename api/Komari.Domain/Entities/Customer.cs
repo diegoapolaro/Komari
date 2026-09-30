@@ -7,11 +7,15 @@ namespace Komari.Domain.Entities;
 /// </summary>
 public class Customer : BaseEntity
 {
+    private readonly List<CustomerAddress> _addresses = new();
+
     public string Name { get; private set; } = string.Empty;
     public string? Phone { get; private set; }
     public string? Email { get; private set; }
     public string? Document { get; private set; }
     public string? Notes { get; private set; }
+
+    public IReadOnlyCollection<CustomerAddress> Addresses => _addresses.AsReadOnly();
 
     // Construtor protegido exigido pelo EF Core
     protected Customer() { }
@@ -42,6 +46,121 @@ public class Customer : BaseEntity
         SetEmail(email);
         SetDocument(document);
         Notes = notes?.Trim();
+        TouchUpdated();
+    }
+
+    public CustomerAddress AddAddress(
+        string street,
+        string number,
+        string neighborhood,
+        string? zipCode = null,
+        string? complement = null,
+        string? referencePoint = null,
+        bool isDefault = false)
+    {
+        var activeAddresses = _addresses.Where(a => a.IsActive).ToList();
+        var shouldBeDefault = isDefault || !activeAddresses.Any();
+
+        if (shouldBeDefault)
+        {
+            foreach (var addr in activeAddresses)
+            {
+                addr.SetDefault(false);
+            }
+        }
+
+        var address = new CustomerAddress(
+            Id,
+            street,
+            number,
+            neighborhood,
+            zipCode,
+            complement,
+            referencePoint,
+            shouldBeDefault);
+
+        _addresses.Add(address);
+        TouchUpdated();
+
+        return address;
+    }
+
+    public void UpdateAddress(
+        Guid addressId,
+        string street,
+        string number,
+        string neighborhood,
+        string? zipCode,
+        string? complement,
+        string? referencePoint,
+        bool isDefault)
+    {
+        var address = _addresses.FirstOrDefault(a => a.Id == addressId && a.IsActive);
+        if (address == null)
+        {
+            throw new InvalidOperationException($"Endereço com identificador '{addressId}' não encontrado ou inativo.");
+        }
+
+        if (isDefault)
+        {
+            foreach (var addr in _addresses.Where(a => a.IsActive && a.Id != addressId))
+            {
+                addr.SetDefault(false);
+            }
+        }
+        else if (address.IsDefault)
+        {
+            var anotherAddress = _addresses.FirstOrDefault(a => a.IsActive && a.Id != addressId);
+            if (anotherAddress != null)
+            {
+                anotherAddress.SetDefault(true);
+            }
+            else
+            {
+                isDefault = true;
+            }
+        }
+
+        address.UpdateDetails(street, number, neighborhood, zipCode, complement, referencePoint, isDefault);
+        TouchUpdated();
+    }
+
+    public void SetDefaultAddress(Guid addressId)
+    {
+        var target = _addresses.FirstOrDefault(a => a.Id == addressId && a.IsActive);
+        if (target == null)
+        {
+            throw new InvalidOperationException($"Endereço com identificador '{addressId}' não encontrado ou inativo.");
+        }
+
+        foreach (var addr in _addresses.Where(a => a.IsActive))
+        {
+            addr.SetDefault(addr.Id == addressId);
+        }
+
+        TouchUpdated();
+    }
+
+    public void RemoveAddress(Guid addressId)
+    {
+        var target = _addresses.FirstOrDefault(a => a.Id == addressId && a.IsActive);
+        if (target == null)
+        {
+            throw new InvalidOperationException($"Endereço com identificador '{addressId}' não encontrado ou já inativo.");
+        }
+
+        var wasDefault = target.IsDefault;
+        target.Deactivate();
+
+        if (wasDefault)
+        {
+            var nextDefault = _addresses.FirstOrDefault(a => a.IsActive);
+            if (nextDefault != null)
+            {
+                nextDefault.SetDefault(true);
+            }
+        }
+
         TouchUpdated();
     }
 
