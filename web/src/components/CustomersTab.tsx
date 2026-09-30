@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useDeferredValue, useState } from 'react'
+import { useDeferredValue, useRef, useState } from 'react'
 import {
   api,
+  fetchAddressByCep,
+  type CreateCustomerAddressRequest,
   type CreateCustomerRequest,
   type CustomerResponse,
   type UpdateCustomerRequest,
 } from '../services/api'
+import { CustomerAddressesModal } from './CustomerAddressesModal'
 
 // Função auxiliar para destacar o trecho do texto correspondente à busca
 function HighlightMatch({ text, term }: { text: string; term: string }) {
@@ -61,9 +64,10 @@ export function CustomersTab() {
   // Estados de formulário e modal
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState<CustomerResponse | null>(null)
+  const [selectedCustomerForAddresses, setSelectedCustomerForAddresses] = useState<CustomerResponse | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
 
-  // Estado do formulário
+  // Estado do formulário do cliente
   const [formData, setFormData] = useState<CreateCustomerRequest>({
     name: '',
     phone: '',
@@ -71,6 +75,52 @@ export function CustomersTab() {
     document: '',
     notes: '',
   })
+
+  // Estados de endereço embutido no cadastro
+  const addressNumberRef = useRef<HTMLInputElement>(null)
+  const [includeAddress, setIncludeAddress] = useState(false)
+  const [addressData, setAddressData] = useState<CreateCustomerAddressRequest>({
+    street: '',
+    number: '',
+    neighborhood: '',
+    zipCode: '',
+    complement: '',
+    referencePoint: '',
+    isDefault: true,
+  })
+  const [cepLoading, setCepLoading] = useState(false)
+  const [cepFeedback, setCepFeedback] = useState<string | null>(null)
+
+  // Consulta automática no ViaCEP para o formulário de cadastro de cliente
+  const handleFormCepChange = async (rawCep: string) => {
+    const digitsOnly = rawCep.replace(/\D/g, '').slice(0, 8)
+    const formatted =
+      digitsOnly.length > 5 ? `${digitsOnly.slice(0, 5)}-${digitsOnly.slice(5)}` : digitsOnly
+
+    setAddressData((prev) => ({ ...prev, zipCode: formatted }))
+
+    if (digitsOnly.length === 8) {
+      setCepLoading(true)
+      setCepFeedback('Buscando CEP no ViaCEP...')
+
+      const result = await fetchAddressByCep(digitsOnly)
+      setCepLoading(false)
+
+      if (result) {
+        setAddressData((prev) => ({
+          ...prev,
+          street: result.street || prev.street,
+          neighborhood: result.neighborhood || prev.neighborhood,
+        }))
+        setCepFeedback('✓ Endereço localizado! Preencha o número.')
+        setTimeout(() => addressNumberRef.current?.focus(), 80)
+      } else {
+        setCepFeedback('⚠️ CEP não encontrado. Preencha a rua e bairro manualmente.')
+      }
+    } else {
+      setCepFeedback(null)
+    }
+  }
 
   // Consulta de clientes com busca instantânea conforme digitação
   const {
@@ -84,14 +134,45 @@ export function CustomersTab() {
     queryFn: () => api.getCustomers({ searchTerm: deferredSearchTerm, includeInactive }),
   })
 
-  // Mutation: Criar cliente
+  // Mutation: Criar cliente com suporte a endereço inicial
   const createMutation = useMutation({
-    mutationFn: (data: CreateCustomerRequest) => api.createCustomer(data),
+    mutationFn: async ({
+      customerData,
+      addressPayload,
+    }: {
+      customerData: CreateCustomerRequest
+      addressPayload: CreateCustomerAddressRequest | null
+    }) => {
+      const created = await api.createCustomer(customerData)
+      if (
+        addressPayload &&
+        addressPayload.street?.trim() &&
+        addressPayload.number?.trim() &&
+        addressPayload.neighborhood?.trim() &&
+        created.id
+      ) {
+        await api.createCustomerAddress(created.id, {
+          street: addressPayload.street.trim(),
+          number: addressPayload.number.trim(),
+          neighborhood: addressPayload.neighborhood.trim(),
+          zipCode: addressPayload.zipCode?.trim() || null,
+          complement: addressPayload.complement?.trim() || null,
+          referencePoint: addressPayload.referencePoint?.trim() || null,
+          isDefault: true,
+        })
+      }
+      return created
+    },
     onSuccess: (created) => {
       queryClient.invalidateQueries({ queryKey: ['customers'] })
       setIsFormOpen(false)
+      const hadAddress = includeAddress && addressData.street?.trim()
       resetForm()
-      setFeedbackMessage(`Cliente "${created.name}" cadastrado com sucesso!`)
+      setFeedbackMessage(
+        hadAddress
+          ? `Cliente "${created.name}" e endereço inicial cadastrados com sucesso!`
+          : `Cliente "${created.name}" cadastrado com sucesso!`
+      )
     },
     onError: (err: Error) => {
       setFeedbackMessage(`Erro ao cadastrar: ${err.message}`)
@@ -134,6 +215,18 @@ export function CustomersTab() {
       document: '',
       notes: '',
     })
+    setAddressData({
+      street: '',
+      number: '',
+      neighborhood: '',
+      zipCode: '',
+      complement: '',
+      referencePoint: '',
+      isDefault: true,
+    })
+    setIncludeAddress(false)
+    setCepFeedback(null)
+    setCepLoading(false)
     setEditingCustomer(null)
   }
 
@@ -150,6 +243,7 @@ export function CustomersTab() {
   }
 
   const handleStartEdit = (customer: CustomerResponse) => {
+    resetForm()
     setEditingCustomer(customer)
     setFormData({
       name: customer.name ?? '',
@@ -158,6 +252,7 @@ export function CustomersTab() {
       document: customer.document ?? '',
       notes: customer.notes ?? '',
     })
+    setIncludeAddress(false)
     setIsFormOpen(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -187,7 +282,21 @@ export function CustomersTab() {
     if (editingCustomer?.id) {
       updateMutation.mutate({ id: editingCustomer.id, data: payload })
     } else {
-      createMutation.mutate(payload)
+      if (includeAddress) {
+        const trimmedStreet = addressData.street?.trim() ?? ''
+        const trimmedNumber = addressData.number?.trim() ?? ''
+        const trimmedNeighborhood = addressData.neighborhood?.trim() ?? ''
+
+        if (!trimmedStreet || !trimmedNumber || !trimmedNeighborhood) {
+          setFeedbackMessage('Para cadastrar o endereço junto com o cliente, preencha Rua, Número e Bairro.')
+          return
+        }
+      }
+
+      createMutation.mutate({
+        customerData: payload,
+        addressPayload: includeAddress ? addressData : null,
+      })
     }
   }
 
@@ -386,6 +495,164 @@ export function CustomersTab() {
               </div>
             </div>
 
+            {/* Inclusão opcional de endereço no cadastro do cliente */}
+            {!editingCustomer && (
+              <div className="pt-3 border-t border-zinc-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      id="includeAddressToggle"
+                      type="checkbox"
+                      checked={includeAddress}
+                      onChange={(e) => setIncludeAddress(e.target.checked)}
+                      className="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 cursor-pointer"
+                    />
+                    <label
+                      htmlFor="includeAddressToggle"
+                      className="text-xs font-semibold text-zinc-800 select-none cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>📍</span>
+                      <span>Cadastrar endereço de entrega agora</span>
+                    </label>
+                  </div>
+
+                  {includeAddress && (
+                    <span className="text-[10px] text-zinc-500 font-medium">
+                      Busca automática por CEP ativada
+                    </span>
+                  )}
+                </div>
+
+                {includeAddress && (
+                  <div className="rounded-lg border border-zinc-200 bg-zinc-50/70 p-3.5 space-y-3 animate-in fade-in duration-150">
+                    {/* CEP */}
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <label className="block text-[11px] font-semibold text-zinc-700">
+                          CEP (busca automática)
+                        </label>
+                        {cepLoading && (
+                          <span className="text-[10px] font-medium text-amber-700 animate-pulse">
+                            Buscando ViaCEP...
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative mt-1">
+                        <input
+                          type="text"
+                          placeholder="00000-000"
+                          value={addressData.zipCode ?? ''}
+                          onChange={(e) => handleFormCepChange(e.target.value)}
+                          maxLength={9}
+                          className="w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                        />
+                        <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-xs text-zinc-400">
+                          🔍
+                        </span>
+                      </div>
+                      {cepFeedback && (
+                        <p
+                          className={`text-[10px] mt-1 font-medium ${
+                            cepFeedback.startsWith('✓')
+                              ? 'text-emerald-700'
+                              : cepFeedback.startsWith('⚠️')
+                                ? 'text-amber-700'
+                                : 'text-zinc-500'
+                          }`}
+                        >
+                          {cepFeedback}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Rua e Número */}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+                      <div className="sm:col-span-3">
+                        <label className="block text-[11px] font-semibold text-zinc-700">
+                          Rua / Logradouro <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required={includeAddress}
+                          placeholder="Ex: Av. Paulista ou Rua das Flores"
+                          value={addressData.street ?? ''}
+                          onChange={(e) =>
+                            setAddressData((prev) => ({ ...prev, street: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                        />
+                      </div>
+                      <div className="sm:col-span-1">
+                        <label className="block text-[11px] font-semibold text-zinc-700">
+                          Número <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          ref={addressNumberRef}
+                          type="text"
+                          required={includeAddress}
+                          placeholder="Ex: 120"
+                          value={addressData.number ?? ''}
+                          onChange={(e) =>
+                            setAddressData((prev) => ({ ...prev, number: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Bairro e Complemento */}
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-zinc-700">
+                          Bairro <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required={includeAddress}
+                          placeholder="Ex: Bela Vista"
+                          value={addressData.neighborhood ?? ''}
+                          onChange={(e) =>
+                            setAddressData((prev) => ({ ...prev, neighborhood: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-zinc-700">
+                          Complemento (opcional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ex: Apto 42, Bloco C"
+                          value={addressData.complement ?? ''}
+                          onChange={(e) =>
+                            setAddressData((prev) => ({ ...prev, complement: e.target.value }))
+                          }
+                          className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Ponto de Referência */}
+                    <div>
+                      <label className="block text-[11px] font-semibold text-zinc-700">
+                        Ponto de Referência (opcional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Em frente à farmácia ou portão verde"
+                        value={addressData.referencePoint ?? ''}
+                        onChange={(e) =>
+                          setAddressData((prev) => ({ ...prev, referencePoint: e.target.value }))
+                        }
+                        className="mt-1 w-full rounded-md border border-zinc-300 bg-white px-3 py-1.5 text-xs text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-900 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100">
               <button
                 type="button"
@@ -507,6 +774,16 @@ export function CustomersTab() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
+                    onClick={() => setSelectedCustomerForAddresses(customer)}
+                    className="inline-flex items-center gap-1 font-semibold text-zinc-800 bg-zinc-100 hover:bg-zinc-200 px-2 py-1 rounded-md transition-colors shadow-2xs"
+                    title="Visualizar e gerenciar endereços de entrega deste cliente"
+                  >
+                    <span>📍</span>
+                    <span>Endereços</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => handleStartEdit(customer)}
                     className="font-medium text-zinc-700 hover:text-zinc-900 hover:underline"
                   >
@@ -534,6 +811,13 @@ export function CustomersTab() {
           ))}
         </div>
       )}
+
+      {/* Modal de Gestão de Endereços com busca no ViaCEP */}
+      <CustomerAddressesModal
+        customer={selectedCustomerForAddresses}
+        isOpen={!!selectedCustomerForAddresses}
+        onClose={() => setSelectedCustomerForAddresses(null)}
+      />
     </div>
   )
 }

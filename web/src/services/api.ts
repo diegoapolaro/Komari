@@ -33,6 +33,9 @@ export type OrderStatusType = components['schemas']['OrderStatus']
 export type CustomerResponse = components['schemas']['CustomerResponse']
 export type CreateCustomerRequest = components['schemas']['CreateCustomerRequest']
 export type UpdateCustomerRequest = components['schemas']['UpdateCustomerRequest']
+export type CustomerAddressResponse = components['schemas']['CustomerAddressResponse']
+export type CreateCustomerAddressRequest = components['schemas']['CreateCustomerAddressRequest']
+export type UpdateCustomerAddressRequest = components['schemas']['UpdateCustomerAddressRequest']
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5105'
 
@@ -252,4 +255,76 @@ export const api = {
     request<void>(`/api/v1/Customers/${id}`, {
       method: 'DELETE',
     }),
+
+  // Customer Addresses
+  getCustomerAddresses: (customerId: string) =>
+    request<CustomerAddressResponse[]>(`/api/v1/Customers/${customerId}/addresses`),
+  createCustomerAddress: (customerId: string, data: CreateCustomerAddressRequest) =>
+    request<CustomerAddressResponse>(`/api/v1/Customers/${customerId}/addresses`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateCustomerAddress: (customerId: string, addressId: string, data: UpdateCustomerAddressRequest) =>
+    request<CustomerAddressResponse>(`/api/v1/Customers/${customerId}/addresses/${addressId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  setDefaultCustomerAddress: (customerId: string, addressId: string) =>
+    request<void>(`/api/v1/Customers/${customerId}/addresses/${addressId}/default`, {
+      method: 'PATCH',
+    }),
+  deleteCustomerAddress: (customerId: string, addressId: string) =>
+    request<void>(`/api/v1/Customers/${customerId}/addresses/${addressId}`, {
+      method: 'DELETE',
+    }),
 }
+
+export interface ViaCepResponse {
+  cep?: string
+  logradouro?: string
+  complemento?: string
+  bairro?: string
+  localidade?: string
+  uf?: string
+  erro?: boolean | string
+}
+
+export interface CepAddressResult {
+  street: string
+  neighborhood: string
+  city: string
+  state: string
+}
+
+/**
+ * Consulta o endereço postal a partir do CEP brasileiro via API pública do ViaCEP.
+ * Aceita CEPs com ou sem pontuação (ex: "01310-100" ou "01310100").
+ */
+export async function fetchAddressByCep(cep: string): Promise<CepAddressResult | null> {
+  const cleanCep = cep.replace(/\D/g, '')
+  if (cleanCep.length !== 8) {
+    return null
+  }
+
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+    if (!res.ok) {
+      return null
+    }
+
+    const data = (await res.json()) as ViaCepResponse
+    if (data.erro === true || data.erro === 'true') {
+      return null
+    }
+
+    return {
+      street: data.logradouro ?? '',
+      neighborhood: data.bairro ?? '',
+      city: data.localidade ?? '',
+      state: data.uf ?? '',
+    }
+  } catch {
+    return null
+  }
+}
+
