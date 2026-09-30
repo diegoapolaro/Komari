@@ -35,7 +35,20 @@ public class CustomerRepository : ICustomerRepository
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             var term = searchTerm.Trim().ToLower();
-            query = query.Where(c => c.Name.ToLower().Contains(term) || (c.Phone != null && c.Phone.Contains(term)));
+            var digitsOnly = new string(term.Where(char.IsDigit).ToArray());
+
+            if (!string.IsNullOrEmpty(digitsOnly) && digitsOnly.Length >= 2)
+            {
+                query = query.Where(c =>
+                    c.Name.ToLower().Contains(term) ||
+                    (c.Phone != null && (c.Phone.ToLower().Contains(term) || c.Phone.Contains(digitsOnly))));
+            }
+            else
+            {
+                query = query.Where(c =>
+                    c.Name.ToLower().Contains(term) ||
+                    (c.Phone != null && c.Phone.ToLower().Contains(term)));
+            }
         }
 
         return await query

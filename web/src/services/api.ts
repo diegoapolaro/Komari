@@ -30,6 +30,10 @@ export type CreateOrderRequest = components['schemas']['CreateOrderRequest']
 export type CreateOrderItemRequest = components['schemas']['CreateOrderItemRequest']
 export type OrderStatusType = components['schemas']['OrderStatus']
 
+export type CustomerResponse = components['schemas']['CustomerResponse']
+export type CreateCustomerRequest = components['schemas']['CreateCustomerRequest']
+export type UpdateCustomerRequest = components['schemas']['UpdateCustomerRequest']
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5105'
 
 export interface ApiError {
@@ -221,5 +225,31 @@ export const api = {
     request<OrderResponse>(`/api/v1/Orders/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify(data),
+    }),
+
+  // Customers
+  getCustomers: (params?: { searchTerm?: string; includeInactive?: boolean }) => {
+    const searchParams = new URLSearchParams()
+    if (params?.searchTerm) searchParams.append('searchTerm', params.searchTerm)
+    if (params?.includeInactive !== undefined) searchParams.append('includeInactive', params.includeInactive.toString())
+    const query = searchParams.toString() ? `?${searchParams.toString()}` : ''
+    return request<CustomerResponse[]>(`/api/v1/Customers${query}`)
+  },
+  getCustomerById: (id: string) => request<CustomerResponse>(`/api/v1/Customers/${id}`),
+  getCustomerByPhone: (phone: string) =>
+    request<CustomerResponse>(`/api/v1/Customers/by-phone/${encodeURIComponent(phone)}`),
+  createCustomer: (data: CreateCustomerRequest) =>
+    request<CustomerResponse>('/api/v1/Customers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  updateCustomer: (id: string, data: UpdateCustomerRequest) =>
+    request<CustomerResponse>(`/api/v1/Customers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  deleteCustomer: (id: string) =>
+    request<void>(`/api/v1/Customers/${id}`, {
+      method: 'DELETE',
     }),
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CategoriesTab } from './components/CategoriesTab'
+import { CustomersTab } from './components/CustomersTab'
 import { Header, type TabType } from './components/Header'
 import { ProductsTab } from './components/ProductsTab'
 import { TablesTab } from './components/TablesTab'
@@ -17,6 +18,7 @@ export function App() {
         {activeTab === 'categories' && <CategoriesTab />}
         {activeTab === 'products' && <ProductsTab />}
         {activeTab === 'tables' && <TablesTab />}
+        {activeTab === 'customers' && <CustomersTab />}
       </main>
 
       {/* Rodapé monocromático */}
