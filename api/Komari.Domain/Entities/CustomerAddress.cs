@@ -71,11 +71,10 @@ public class CustomerAddress : BaseEntity
         TouchUpdated();
     }
 
-    public void Deactivate()
+    public override void Deactivate()
     {
-        IsActive = false;
+        base.Deactivate();
         IsDefault = false;
-        TouchUpdated();
     }
 
     private void SetCustomerId(Guid customerId)
