@@ -7,8 +7,9 @@ namespace Komari.Application.Orders.DTOs;
 /// </summary>
 public record OrderResponse(
     Guid Id,
-    Guid BillId,
-    int BillNumber,
+    OrderType Type,
+    Guid? BillId,
+    int? BillNumber,
     Guid? TableId,
     int? TableNumber,
     string? CounterName,

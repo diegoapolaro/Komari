@@ -20,6 +20,7 @@ public class KomariDbContext : DbContext
     public DbSet<CashMovement> CashMovements => Set<CashMovement>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<CustomerAddress> CustomerAddresses => Set<CustomerAddress>();
+    public DbSet<DeliveryOrder> DeliveryOrders => Set<DeliveryOrder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

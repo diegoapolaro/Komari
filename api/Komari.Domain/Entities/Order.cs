@@ -11,8 +11,10 @@ public class Order : BaseEntity
 {
     private readonly List<OrderItem> _items = new();
 
-    public Guid BillId { get; private set; }
+    public OrderType Type { get; private set; } = OrderType.DineIn;
+    public Guid? BillId { get; private set; }
     public Bill? Bill { get; private set; }
+    public DeliveryOrder? DeliveryOrder { get; private set; }
 
     public OrderStatus Status { get; private set; } = OrderStatus.Pending;
     public decimal Total { get; private set; }
@@ -25,11 +27,29 @@ public class Order : BaseEntity
     protected Order() { }
 
     public Order(Guid billId, string? notes = null)
+        : this(billId, OrderType.DineIn, notes)
+    {
+    }
+
+    public Order(Guid billId, OrderType type, string? notes = null)
     {
         SetBillId(billId);
+        Type = type == OrderType.Delivery ? OrderType.DineIn : type;
         Notes = notes?.Trim();
         Status = OrderStatus.Pending;
         Total = 0m;
+    }
+
+    public static Order CreateDeliveryOrder(string? notes = null)
+    {
+        return new Order
+        {
+            BillId = null,
+            Type = OrderType.Delivery,
+            Notes = notes?.Trim(),
+            Status = OrderStatus.Pending,
+            Total = 0m
+        };
     }
 
     public OrderItem AddItem(

@@ -102,12 +102,15 @@ public class OrderService : IOrderService
         var order = await _orderRepository.GetByIdAsync(orderId, true, cancellationToken)
             ?? throw new NotFoundException(nameof(Order), orderId);
 
-        var bill = await _billRepository.GetByIdAsync(order.BillId, cancellationToken)
-            ?? throw new NotFoundException(nameof(Bill), order.BillId);
-
-        if (bill.Status != BillStatus.Open)
+        if (order.BillId.HasValue)
         {
-            throw new ConflictException($"Não é possível alterar pedidos de uma comanda que não está aberta.");
+            var bill = await _billRepository.GetByIdAsync(order.BillId.Value, cancellationToken)
+                ?? throw new NotFoundException(nameof(Bill), order.BillId.Value);
+
+            if (bill.Status != BillStatus.Open)
+            {
+                throw new ConflictException($"Não é possível alterar pedidos de uma comanda que não está aberta.");
+            }
         }
 
         foreach (var itemReq in request.Items)
@@ -174,8 +177,9 @@ public class OrderService : IOrderService
 
         return new OrderResponse(
             order.Id,
+            order.Type,
             order.BillId,
-            order.Bill?.Number ?? 0,
+            order.Bill?.Number,
             order.Bill?.TableId,
             order.Bill?.Table?.Number,
             order.Bill?.CounterName,
