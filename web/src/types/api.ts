@@ -1540,6 +1540,380 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/DeliveryOrders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["OrderStatus"];
+                    customerId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeliveryOrderResponse"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CreateDeliveryOrderRequest"];
+                    "text/json": components["schemas"]["CreateDeliveryOrderRequest"];
+                    "application/*+json": components["schemas"]["CreateDeliveryOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeliveryOrderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/DeliveryOrders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeliveryOrderResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/DeliveryOrders/{id}/dispatch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DispatchDeliveryOrderRequest"];
+                    "text/json": components["schemas"]["DispatchDeliveryOrderRequest"];
+                    "application/*+json": components["schemas"]["DispatchDeliveryOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeliveryOrderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/DeliveryOrders/{id}/deliver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeliveryOrderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/DeliveryOrders/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["CancelDeliveryOrderRequest"];
+                    "text/json": components["schemas"]["CancelDeliveryOrderRequest"];
+                    "application/*+json": components["schemas"]["CancelDeliveryOrderRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeliveryOrderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/DeliveryOrders/{id}/estimated-minutes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["UpdateEstimatedMinutesRequest"];
+                    "text/json": components["schemas"]["UpdateEstimatedMinutesRequest"];
+                    "application/*+json": components["schemas"]["UpdateEstimatedMinutesRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeliveryOrderResponse"];
+                    };
+                };
+                /** @description Bad Request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/v1/Orders": {
         parameters: {
             query?: never;
@@ -2751,6 +3125,9 @@ export interface components {
         CancelBillRequest: {
             reason?: string | null;
         };
+        CancelDeliveryOrderRequest: {
+            reason?: string | null;
+        };
         CancelOrderRequest: {
             reason?: string | null;
         };
@@ -2847,6 +3224,23 @@ export interface components {
             document?: string | null;
             notes?: string | null;
         };
+        CreateDeliveryOrderRequest: {
+            /** Format: uuid */
+            customerId?: string;
+            /** Format: uuid */
+            customerAddressId?: string;
+            /** Format: double */
+            deliveryFee?: number;
+            /** Format: double */
+            discount?: number;
+            paymentMethod?: components["schemas"]["DeliveryPaymentMethod"];
+            /** Format: double */
+            changeFor?: number | null;
+            /** Format: int32 */
+            estimatedMinutes?: number | null;
+            notes?: string | null;
+            items?: components["schemas"]["CreateOrderItemRequest"][] | null;
+        };
         CreateOrderItemRequest: {
             /** Format: uuid */
             productId?: string;
@@ -2910,6 +3304,58 @@ export interface components {
             /** Format: date-time */
             updatedAt?: string | null;
         };
+        DeliveryOrderResponse: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            orderId?: string;
+            /** Format: uuid */
+            customerId?: string;
+            customerName?: string | null;
+            customerPhone?: string | null;
+            /** Format: uuid */
+            customerAddressId?: string;
+            street?: string | null;
+            number?: string | null;
+            neighborhood?: string | null;
+            zipCode?: string | null;
+            complement?: string | null;
+            referencePoint?: string | null;
+            /** Format: double */
+            itemsTotal?: number;
+            /** Format: double */
+            deliveryFee?: number;
+            /** Format: double */
+            discount?: number;
+            /** Format: double */
+            totalAmount?: number;
+            paymentMethod?: components["schemas"]["DeliveryPaymentMethod"];
+            /** Format: double */
+            changeFor?: number | null;
+            driverName?: string | null;
+            /** Format: int32 */
+            estimatedMinutes?: number | null;
+            status?: components["schemas"]["OrderStatus"];
+            notes?: string | null;
+            cancellationReason?: string | null;
+            items?: components["schemas"]["OrderItemResponse"][] | null;
+            /** Format: date-time */
+            dispatchedAt?: string | null;
+            /** Format: date-time */
+            deliveredAt?: string | null;
+            /** Format: date-time */
+            createdAt?: string;
+            /** Format: date-time */
+            updatedAt?: string | null;
+        };
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        DeliveryPaymentMethod: 1 | 2 | 3 | 4;
+        DispatchDeliveryOrderRequest: {
+            driverName?: string | null;
+        };
         InitializeTablesRequest: {
             /** Format: int32 */
             totalTables?: number;
@@ -2951,10 +3397,11 @@ export interface components {
         OrderResponse: {
             /** Format: uuid */
             id?: string;
+            type?: components["schemas"]["OrderType"];
             /** Format: uuid */
-            billId?: string;
+            billId?: string | null;
             /** Format: int32 */
-            billNumber?: number;
+            billNumber?: number | null;
             /** Format: uuid */
             tableId?: string | null;
             /** Format: int32 */
@@ -2976,6 +3423,11 @@ export interface components {
          * @enum {integer}
          */
         OrderStatus: 1 | 2 | 3 | 4 | 5 | 6;
+        /**
+         * Format: int32
+         * @enum {integer}
+         */
+        OrderType: 1 | 2 | 3;
         /**
          * Format: int32
          * @enum {integer}
@@ -3095,6 +3547,10 @@ export interface components {
             email?: string | null;
             document?: string | null;
             notes?: string | null;
+        };
+        UpdateEstimatedMinutesRequest: {
+            /** Format: int32 */
+            minutes?: number;
         };
         UpdateOrderStatusRequest: {
             status?: components["schemas"]["OrderStatus"];

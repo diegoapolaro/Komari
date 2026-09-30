@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../services/api'
 
-export type TabType = 'categories' | 'products' | 'tables' | 'customers'
+export type TabType = 'categories' | 'products' | 'tables' | 'customers' | 'delivery'
 
 interface HeaderProps {
   activeTab: TabType
@@ -65,6 +65,7 @@ export function Header({ activeTab, onTabChange }: HeaderProps) {
               { id: 'products', label: '2. Produtos / Cardápio' },
               { id: 'tables', label: '3. Salão & Mesas' },
               { id: 'customers', label: '4. Clientes' },
+              { id: 'delivery', label: '5. Pedidos de Delivery' },
             ] as const
           ).map((tab) => {
             const isActive = activeTab === tab.id

@@ -37,6 +37,13 @@ export type CustomerAddressResponse = components['schemas']['CustomerAddressResp
 export type CreateCustomerAddressRequest = components['schemas']['CreateCustomerAddressRequest']
 export type UpdateCustomerAddressRequest = components['schemas']['UpdateCustomerAddressRequest']
 
+export type DeliveryOrderResponse = components['schemas']['DeliveryOrderResponse']
+export type CreateDeliveryOrderRequest = components['schemas']['CreateDeliveryOrderRequest']
+export type DispatchDeliveryOrderRequest = components['schemas']['DispatchDeliveryOrderRequest']
+export type CancelDeliveryOrderRequest = components['schemas']['CancelDeliveryOrderRequest']
+export type UpdateEstimatedMinutesRequest = components['schemas']['UpdateEstimatedMinutesRequest']
+export type DeliveryPaymentMethodType = components['schemas']['DeliveryPaymentMethod']
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5105'
 
 export interface ApiError {
@@ -276,6 +283,41 @@ export const api = {
   deleteCustomerAddress: (customerId: string, addressId: string) =>
     request<void>(`/api/v1/Customers/${customerId}/addresses/${addressId}`, {
       method: 'DELETE',
+    }),
+
+  // Delivery Orders
+  getDeliveryOrders: (params?: { status?: number; customerId?: string }) => {
+    const search = new URLSearchParams()
+    if (params?.status !== undefined) search.append('status', params.status.toString())
+    if (params?.customerId) search.append('customerId', params.customerId)
+    const qs = search.toString() ? `?${search.toString()}` : ''
+    return request<DeliveryOrderResponse[]>(`/api/v1/DeliveryOrders${qs}`)
+  },
+  getDeliveryOrderById: (id: string) =>
+    request<DeliveryOrderResponse>(`/api/v1/DeliveryOrders/${id}`),
+  createDeliveryOrder: (data: CreateDeliveryOrderRequest) =>
+    request<DeliveryOrderResponse>('/api/v1/DeliveryOrders', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  dispatchDeliveryOrder: (id: string, data: DispatchDeliveryOrderRequest) =>
+    request<DeliveryOrderResponse>(`/api/v1/DeliveryOrders/${id}/dispatch`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  deliverDeliveryOrder: (id: string) =>
+    request<DeliveryOrderResponse>(`/api/v1/DeliveryOrders/${id}/deliver`, {
+      method: 'PATCH',
+    }),
+  cancelDeliveryOrder: (id: string, data: CancelDeliveryOrderRequest) =>
+    request<DeliveryOrderResponse>(`/api/v1/DeliveryOrders/${id}/cancel`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  updateDeliveryOrderEstimatedMinutes: (id: string, data: UpdateEstimatedMinutesRequest) =>
+    request<DeliveryOrderResponse>(`/api/v1/DeliveryOrders/${id}/estimated-minutes`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
     }),
 }
 

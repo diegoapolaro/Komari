@@ -55,3 +55,17 @@ export const OrderStatusLabels: Record<components['schemas']['OrderStatus'], str
   [OrderStatus.Delivered]: 'Entregue',
   [OrderStatus.Cancelled]: 'Cancelado',
 }
+
+export const DeliveryPaymentMethod = {
+  Cash: 1,
+  Pix: 2,
+  CreditCard: 3,
+  DebitCard: 4,
+} as const satisfies Record<string, components['schemas']['DeliveryPaymentMethod']>
+
+export const DeliveryPaymentMethodLabels: Record<components['schemas']['DeliveryPaymentMethod'], string> = {
+  [DeliveryPaymentMethod.Cash]: 'Dinheiro',
+  [DeliveryPaymentMethod.Pix]: 'PIX',
+  [DeliveryPaymentMethod.CreditCard]: 'Cartão de Crédito',
+  [DeliveryPaymentMethod.DebitCard]: 'Cartão de Débito',
+}
